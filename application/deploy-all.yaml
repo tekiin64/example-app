@@ -12,7 +12,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-client
   nfs:
-    path: /nfs # NFS paylaşımlarının yolu
+    path: /nfs/wordpress # NFS paylaşımlarının yolu
     server: 10.10.140.201 # NFS sunucu IP adresi (yani Master)
 
 ---
