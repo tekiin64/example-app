@@ -9,71 +9,7 @@ data:
   password: cm9vdHBhc3N3b3Jk # 'rootpassword' değerinin base64 ile şifrelenmiş hali
 
 ---
-# 2. PersistentVolume (PV) - WordPress için
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: wordpress-pv
-spec:
-  capacity:
-    storage: 10Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs-client
-  nfs:
-    path: /nfs/wordpress # NFS share path
-    server: 10.10.140.201 # NFS server IP (Master node)
-
----
-# 3. PersistentVolumeClaim (PVC) - WordPress için
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: wordpress-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: nfs-client
-
----
-# 4. PersistentVolume (PV) - MySQL için
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv
-spec:
-  capacity:
-    storage: 10Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs-client
-  nfs:
-    path: /nfs/mysql # NFS share path
-    server: 10.10.140.201 # NFS server IP (Master node)
-
----
-# 5. PersistentVolumeClaim (PVC) - MySQL için
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: nfs-client
-
----
-# 6. MySQL Deployment ve Service
+# 2. MySQL Deployment ve Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -88,16 +24,6 @@ spec:
       labels:
         app: mysql
     spec:
-      initContainers:
-      - name: fix-permissions
-        image: busybox
-        command:
-          - "/bin/sh"
-          - "-c"
-          - "chown -R mysql:mysql /var/lib/mysql"
-        volumeMounts:
-          - name: mysql-pv
-            mountPath: /var/lib/mysql
       containers:
       - name: mysql
         image: mysql:5.7
@@ -112,12 +38,11 @@ spec:
         ports:
           - containerPort: 3306
         volumeMounts:
-          - name: mysql-pv
+          - name: mysql-data
             mountPath: /var/lib/mysql
       volumes:
-        - name: mysql-pv
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+        - name: mysql-data
+          emptyDir: {}  # Verileri pod içinde tutmak için emptyDir kullanıyoruz
 
 ---
 apiVersion: v1
@@ -133,7 +58,7 @@ spec:
   clusterIP: None
 
 ---
-# 7. WordPress Deployment ve Service
+# 3. WordPress Deployment ve Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -166,12 +91,11 @@ spec:
         ports:
           - containerPort: 80
         volumeMounts:
-          - name: wordpress-pv
+          - name: wordpress-data
             mountPath: /var/www/html
       volumes:
-        - name: wordpress-pv
-          persistentVolumeClaim:
-            claimName: wordpress-pvc
+        - name: wordpress-data
+          emptyDir: {}  # Verileri pod içinde tutmak için emptyDir kullanıyoruz
 
 ---
 apiVersion: v1
