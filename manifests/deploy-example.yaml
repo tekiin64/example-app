@@ -54,10 +54,10 @@ spec:
         - containerPort: 5678
         resources:
           limits:
-            memory: "256Mi"
+            memory: "3Mi"
             cpu: "200m"
           requests:
-            memory: "128Mi"
+            memory: "2Mi"
             cpu: "100m"
         volumeMounts:
         - name: config-volume
