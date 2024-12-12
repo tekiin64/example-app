@@ -31,7 +31,7 @@ metadata:
   name: example-app-deployment
   namespace: default
 spec:
-  replicas: 20
+  replicas: 1
   selector:
     matchLabels:
       app: example-app
@@ -47,7 +47,7 @@ spec:
     spec:
       containers:
       - name: example-app
-        image: hashicorp/http-echo:0.2.3
+        image: hashicorp/http-echo:latest
         args:
           - "-text=Ben ArgoCD ile deploy edildim :)"
         ports:
