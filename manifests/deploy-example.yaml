@@ -1,0 +1,84 @@
+---
+# ConfigMap: Uygulama yapılandırması
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-app-config
+  namespace: default
+data:
+  config.json: |
+    {
+      "setting1": "value1",
+      "setting2": "value2"
+    }
+
+---
+# Secret: Gizli bilgiler
+apiVersion: v1
+kind: Secret
+metadata:
+  name: example-app-secret
+  namespace: default
+type: Opaque
+data:
+  api-key: c2VjcmV0S2V5  # "secretKey" base64 kodlu
+
+---
+# Deployment: Uygulama pod'larını yönetir
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-app-deployment
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: example-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: example-app
+    spec:
+      containers:
+      - name: example-app
+        image: hashicorp/http-echo:0.2.3
+        args:
+          - "-text=Hello, Kubernetes!"
+        ports:
+        - containerPort: 5678
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: example-app-config
+
+---
+# Service: Pod'ları dış dünyaya açar
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-app-service
+  namespace: default
+spec:
+  selector:
+    app: example-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5678
+  type: NodePort
