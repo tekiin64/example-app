@@ -6,7 +6,7 @@ metadata:
   name: mysql-secret
 type: Opaque
 data:
-  password: m9vdHBhc3N3b3Jk # 'rootpassword' değerinin base64 ile şifrelenmiş hali
+  password: cm9vdHBhc3N3b3Jk # 'rootpassword' değerinin base64 ile şifrelenmiş hali
 
 ---
 # 2. PersistentVolume (PV) - WordPress için
