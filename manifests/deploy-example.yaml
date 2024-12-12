@@ -31,14 +31,14 @@ metadata:
   name: example-app-deployment
   namespace: default
 spec:
-  replicas: 20
+  replicas: 1
   selector:
     matchLabels:
       app: example-app
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1
+      maxUnavailable: 10
       maxSurge: 1
   template:
     metadata:
