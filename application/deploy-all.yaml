@@ -88,6 +88,16 @@ spec:
       labels:
         app: mysql
     spec:
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command:
+          - "/bin/sh"
+          - "-c"
+          - "chown -R mysql:mysql /var/lib/mysql"
+        volumeMounts:
+          - name: mysql-pv
+            mountPath: /var/lib/mysql
       containers:
       - name: mysql
         image: mysql:5.7
@@ -96,7 +106,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: mysql-secret
-                key: password  # 'mysql-secret' içinde tanımlı parola
+                key: password
           - name: MYSQL_DATABASE
             value: "wordpress"
         ports:
