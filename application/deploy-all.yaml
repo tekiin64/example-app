@@ -1,6 +1,15 @@
+---
+# 1. MySQL Secret (Parola güvenliği için)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  password: m9vdHBhc3N3b3Jk # 'rootpassword' değerinin base64 ile şifrelenmiş hali
 
 ---
-# 2. PersistentVolume (PV)
+# 2. PersistentVolume (PV) - WordPress için
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -14,11 +23,11 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-client
   nfs:
-    path: /nfs/wordpress # NFS paylaşımlarının yolu
-    server: 10.10.140.201 # NFS sunucu IP adresi (yani Master)
+    path: /nfs/wordpress # NFS share path
+    server: 10.10.140.201 # NFS server IP (Master node)
 
 ---
-# 3. PersistentVolumeClaim (PVC)
+# 3. PersistentVolumeClaim (PVC) - WordPress için
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -31,10 +40,8 @@ spec:
       storage: 10Gi
   storageClassName: nfs-client
 
-
-
 ---
-# 2. PersistentVolume (PV)
+# 4. PersistentVolume (PV) - MySQL için
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -48,11 +55,11 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-client
   nfs:
-    path: /nfs/mysql # NFS paylaşımlarının yolu
-    server: 10.10.140.201 # NFS sunucu IP adresi (yani Master)
+    path: /nfs/mysql # NFS share path
+    server: 10.10.140.201 # NFS server IP (Master node)
 
 ---
-# 3. PersistentVolumeClaim (PVC)
+# 5. PersistentVolumeClaim (PVC) - MySQL için
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -66,7 +73,7 @@ spec:
   storageClassName: nfs-client
 
 ---
-# 4. MySQL Deployment ve Service
+# 6. MySQL Deployment ve Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -86,7 +93,10 @@ spec:
         image: mysql:5.7
         env:
           - name: MYSQL_ROOT_PASSWORD
-            value: "rootpassword"  # Güvenli bir parola kullanmaya özen gösterin
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: password  # 'mysql-secret' içinde tanımlı parola
           - name: MYSQL_DATABASE
             value: "wordpress"
         ports:
@@ -113,7 +123,7 @@ spec:
   clusterIP: None
 
 ---
-# 5. WordPress Deployment ve Service
+# 7. WordPress Deployment ve Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -139,7 +149,10 @@ spec:
           - name: WORDPRESS_DB_USER
             value: root
           - name: WORDPRESS_DB_PASSWORD
-            value: "rootpassword"  # Güvenli bir parola kullanmaya özen gösterin
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: password  # 'mysql-secret' içinde tanımlı parola
         ports:
           - containerPort: 80
         volumeMounts:
