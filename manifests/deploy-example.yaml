@@ -31,7 +31,7 @@ metadata:
   name: example-app-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 20
   selector:
     matchLabels:
       app: example-app
@@ -49,7 +49,7 @@ spec:
       - name: example-app
         image: hashicorp/http-echo:0.2.3
         args:
-          - "-text=Hello, Kubernetes!"
+          - "-text=Ben ArgoCD ile deploy edildim :)"
         ports:
         - containerPort: 5678
         resources:
